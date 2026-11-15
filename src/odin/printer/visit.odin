@@ -1752,7 +1752,7 @@ visit_expr :: proc(
 			document = cons(document, text("#force_no_inline"))
 		}
 
-		document = cons_with_nopl(document, visit_proc_type(p, v.type^, v.body != nil, len(v.where_clauses) > 0))
+		document = cons_with_nopl(document, visit_proc_type(p, v.type^, len(v.where_clauses) > 0))
 
 		document = cons_with_nopl(document, visit_where_clauses(p, v.where_clauses))
 
@@ -1767,7 +1767,7 @@ visit_expr :: proc(
 			document = cons_with_nopl(document, text("---"))
 		}
 	case ^ast.Proc_Type:
-		document = group(visit_proc_type(p, v^, false, false))
+		document = group(visit_proc_type(p, v^, false))
 	case ^ast.Basic_Lit:
 		document = text_token(p, v.tok)
 	case ^ast.Binary_Expr:
@@ -2245,12 +2245,7 @@ visit_proc_tags :: proc(p: ^Printer, proc_tags: ast.Proc_Tags) -> ^Document {
 }
 
 @(private)
-visit_proc_type :: proc(
-	p: ^Printer,
-	proc_type: ast.Proc_Type,
-	contains_body: bool,
-	contains_where_clauses: bool,
-) -> ^Document {
+visit_proc_type :: proc(p: ^Printer, proc_type: ast.Proc_Type, contains_where_clauses: bool) -> ^Document {
 	document := text("proc")
 
 	explicit_calling := false
@@ -2323,7 +2318,7 @@ visit_proc_type :: proc(
 		if use_parens {
 			document = cons_with_nopl(document, results_parens)
 		} else {
-			results_no_parens := nest(group(visit_signature_list(p, proc_type.results, contains_body, true)))
+			results_no_parens := nest(group(visit_signature_list(p, proc_type.results, false, true)))
 			if can_multiline_single {
 				document = cons_with_nopl(document, if_break_or_document(results_parens, results_no_parens))
 			} else {
